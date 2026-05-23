@@ -94,17 +94,89 @@ pnpm generate:types
 
 ## Deployment
 
-### Vercel + Neon (recommended)
+### 🚀 Deploy to Vercel (recommended)
 
-1. Push this repo to GitHub.
-2. Create a Postgres database on [Neon](https://neon.tech).
-3. Import the repo on Vercel.
-4. Add the same env vars from `.env.example` in the Vercel project settings.
-5. Deploy. Visit `https://your-domain.com/admin`.
+#### One-click deploy
 
-### Media uploads
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fimranext%2Fiportfolio&env=DATABASE_URI,PAYLOAD_SECRET,NEXT_PUBLIC_SERVER_URL,RESEND_API_KEY,CONTACT_FROM_EMAIL,CONTACT_TO_EMAIL&envDescription=See%20.env.example%20for%20details&envLink=https%3A%2F%2Fgithub.com%2Fimranext%2Fiportfolio%2Fblob%2Fmain%2F.env.example&project-name=iportfolio&repository-name=iportfolio)
 
-`Media` is currently set to local disk (`media/`). For production, switch to S3 / R2 / Vercel Blob using the Payload Cloud Storage plugin — see [Payload docs](https://payloadcms.com/docs/upload/storage-adapters).
+#### Manual deploy (5 minutes)
+
+**1. Push the branch to `main`** (or import the `feat/nextjs-payload-rebuild` branch directly):
+
+```bash
+git checkout feat/nextjs-payload-rebuild
+git push origin feat/nextjs-payload-rebuild
+```
+
+**2. Create a Postgres database**
+
+Easiest options:
+
+- [**Neon**](https://neon.tech) — free tier, generous, recommended.
+- [**Vercel Postgres**](https://vercel.com/storage/postgres) — integrated, one-click from the project dashboard.
+- [**Supabase**](https://supabase.com) — free tier with extras.
+
+Copy the **connection string** (e.g. `postgres://user:pass@host/db?sslmode=require`).
+
+**3. Generate a Payload secret**
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+**4. Import the repo on Vercel**
+
+1. Go to [vercel.com/new](https://vercel.com/new) → import `imranext/iportfolio`.
+2. **Framework preset**: Next.js (auto-detected).
+3. **Build command**: `pnpm build` (auto-detected).
+4. **Install command**: `pnpm install` (auto-detected).
+5. Skip "Deploy" for now — add env vars first.
+
+**5. Set environment variables**
+
+In **Project Settings → Environment Variables**, add:
+
+| Variable                | Value                                                             |
+| ----------------------- | ----------------------------------------------------------------- |
+| `DATABASE_URI`          | Your Postgres connection string from step 2                       |
+| `PAYLOAD_SECRET`        | The 64-char hex string from step 3                                |
+| `NEXT_PUBLIC_SERVER_URL`| `https://<your-project>.vercel.app` (update after first deploy)   |
+| `RESEND_API_KEY`        | API key from [resend.com](https://resend.com) — optional in dev   |
+| `CONTACT_FROM_EMAIL`    | `"ImranX <hello@your-verified-domain.com>"`                       |
+| `CONTACT_TO_EMAIL`      | `imranlabs@yahoo.com`                                             |
+
+**6. Add Vercel Blob storage for media uploads** *(important — Vercel has no persistent disk)*
+
+1. **Project → Storage → Connect Store → Blob → Create**.
+2. This automatically adds `BLOB_READ_WRITE_TOKEN` to your env vars — no copy/paste needed.
+3. Redeploy.
+
+Without this step, admin-uploaded images would be lost on every redeploy. The Payload config auto-detects the token and switches to Blob storage when present.
+
+**7. Deploy & create your admin user**
+
+1. Click **Deploy**.
+2. Visit `https://<your-project>.vercel.app/admin`.
+3. Create your first admin user.
+4. Update `NEXT_PUBLIC_SERVER_URL` to your real domain and redeploy.
+
+**8. (Optional) Connect a custom domain**
+
+**Project Settings → Domains** → add your domain. Update `NEXT_PUBLIC_SERVER_URL` accordingly.
+
+---
+
+### Schema migrations
+
+The Postgres adapter auto-syncs schema in development. For production, generate proper migrations once your schema is stable:
+
+```bash
+pnpm payload migrate:create
+pnpm payload migrate
+```
+
+Then change `postgresAdapter({ pool, push: false })` in `payload.config.ts` to disable auto-push in production.
 
 ---
 

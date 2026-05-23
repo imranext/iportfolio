@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { payloadCloudPlugin } from "@payloadcms/payload-cloud";
+import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
 import { buildConfig } from "payload";
 import sharp from "sharp";
 
@@ -57,5 +58,18 @@ export default buildConfig({
     },
   }),
   sharp,
-  plugins: [payloadCloudPlugin()],
+  plugins: [
+    payloadCloudPlugin(),
+    // Auto-enable Vercel Blob storage for the Media collection when
+    // BLOB_READ_WRITE_TOKEN is present (set automatically by Vercel when
+    // you add the Blob integration to your project). In local dev with no
+    // token set, falls back to local disk uploads.
+    vercelBlobStorage({
+      enabled: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
+      collections: {
+        media: true,
+      },
+      token: process.env.BLOB_READ_WRITE_TOKEN || "",
+    }),
+  ],
 });
