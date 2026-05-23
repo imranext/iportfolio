@@ -1,0 +1,141 @@
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-accent-coral: #ff4c60;
+  --color-accent-yellow: #ffd15c;
+  --color-accent-teal: #44d7b6;
+  --color-accent-purple: #6c6ce5;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+}
+
+:root {
+  --background: 40 40% 97%;
+  --foreground: 222 47% 11%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+
+  --muted: 240 5% 92%;
+  --muted-foreground: 240 4% 46%;
+
+  --accent: 240 5% 96%;
+  --accent-foreground: 222 47% 11%;
+
+  --border: 240 6% 90%;
+  --input: 240 6% 90%;
+  --ring: 240 5% 60%;
+}
+
+.dark {
+  --background: 222 47% 6%;
+  --foreground: 210 40% 96%;
+
+  --card: 222 40% 9%;
+  --card-foreground: 210 40% 96%;
+
+  --muted: 222 30% 15%;
+  --muted-foreground: 215 16% 65%;
+
+  --accent: 222 30% 15%;
+  --accent-foreground: 210 40% 96%;
+
+  --border: 222 30% 18%;
+  --input: 222 30% 18%;
+  --ring: 240 5% 70%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Animated background dots */
+.bg-dotted {
+  background-image: radial-gradient(
+    hsl(var(--foreground) / 0.07) 1px,
+    transparent 1px
+  );
+  background-size: 24px 24px;
+}
+
+/* Subtle radial glow used behind sections */
+.section-glow {
+  background:
+    radial-gradient(60% 50% at 30% 20%, rgba(108, 108, 229, 0.15), transparent 70%),
+    radial-gradient(50% 60% at 80% 80%, rgba(255, 76, 96, 0.12), transparent 70%);
+}
+
+/* Scrolling marquee */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+.animate-marquee-slow {
+  animation: marquee 60s linear infinite;
+}
+
+/* Section heading underline accent */
+.section-heading {
+  position: relative;
+  display: inline-block;
+}
+
+.section-heading::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  width: 48px;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--color-accent-coral),
+    var(--color-accent-yellow)
+  );
+}
