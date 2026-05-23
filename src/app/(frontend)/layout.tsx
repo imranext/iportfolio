@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 
+import { Cursor } from "@/components/cursor";
+import { SmoothScroll } from "@/components/smooth-scroll";
 import { ThemeProvider } from "@/components/theme-provider";
 import { getPayloadClient } from "@/lib/payload";
 import { mediaUrl } from "@/lib/media";
+import { fallbackOgImage } from "@/lib/unsplash";
 
 import "./globals.css";
 
@@ -24,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
   try {
     const payload = await getPayloadClient();
     const settings = await payload.findGlobal({ slug: "site-settings" });
-    const ogUrl = mediaUrl(settings.ogImage as never);
+    const ogUrl = mediaUrl(settings.ogImage as never) || fallbackOgImage;
     return {
       title: {
         default: settings.siteName || "ImranX — Portfolio",
@@ -36,7 +39,7 @@ export async function generateMetadata(): Promise<Metadata> {
       openGraph: {
         title: settings.siteName || "ImranX — Portfolio",
         description: settings.tagline || "",
-        images: ogUrl ? [{ url: ogUrl }] : undefined,
+        images: [{ url: ogUrl }],
         type: "website",
       },
     };
@@ -45,6 +48,9 @@ export async function generateMetadata(): Promise<Metadata> {
       title: "ImranX — Portfolio",
       description:
         "WordPress & Shopify expert. Custom builds, responsive solutions and conversion-focused design.",
+      openGraph: {
+        images: [{ url: fallbackOgImage }],
+      },
     };
   }
 }
@@ -58,14 +64,17 @@ export default function RootLayout({
       className={`${inter.variable} ${display.variable}`}
       suppressHydrationWarning
     >
-      <body className="min-h-screen antialiased">
+      <body className="min-h-screen antialiased has-custom-cursor">
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <SmoothScroll>
+            <Cursor />
+            {children}
+          </SmoothScroll>
         </ThemeProvider>
       </body>
     </html>

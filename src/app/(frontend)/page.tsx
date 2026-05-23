@@ -114,6 +114,21 @@ export default async function HomePage() {
     return ((result as { docs: T[] }).docs || []) as T[];
   };
 
+  // Use the homepage's existing demo testimonials if the CMS is empty so the
+  // section is never blank for new admins.
+  const testimonialDocs = docs<{
+    id: string | number;
+    name: string;
+    role?: string | null;
+    company?: string | null;
+    quote: string;
+    rating?: number | null;
+  }>(testimonials);
+  const testimonialItems =
+    testimonialDocs.length > 0
+      ? testimonialDocs
+      : (await import("@/lib/unsplash")).fallbackTestimonials;
+
   return (
     <>
       <Header siteName={siteName} cvUrl={cvUrl} />
@@ -151,7 +166,7 @@ export default async function HomePage() {
 
         <Skills skills={docs(skills)} />
 
-        <Testimonials items={docs(testimonials)} />
+        <Testimonials items={testimonialItems} />
 
         <Contact
           heading={contact.heading}
@@ -165,6 +180,9 @@ export default async function HomePage() {
       <Footer
         siteName={siteName}
         copyright={settingsData.footer?.copyright}
+        showUnsplashAttribution={
+          docs(portfolio).length === 0 || testimonialDocs.length === 0
+        }
       />
     </>
   );

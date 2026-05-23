@@ -1,11 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight, Quote, Star } from "lucide-react";
 
+import { RevealText } from "@/components/scroll-reveal";
 import { Card, CardContent } from "@/components/ui/card";
+import { fallbackTestimonialAvatars } from "@/lib/unsplash";
 import { cn } from "@/lib/utils";
 
 type Testimonial = {
@@ -28,19 +30,31 @@ export function Testimonials({ items }: { items: Testimonial[] }) {
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
 
+  // Autoplay every 5s
+  useEffect(() => {
+    if (!emblaApi) return;
+    const id = window.setInterval(() => {
+      emblaApi.scrollNext();
+    }, 5000);
+    return () => window.clearInterval(id);
+  }, [emblaApi]);
+
   if (!items?.length) return null;
 
   return (
-    <section id="testimonials" className="py-24">
+    <section id="testimonials" className="relative py-24 md:py-32">
       <div className="mx-auto max-w-7xl px-4 md:px-8">
-        <div className="flex flex-col items-start gap-2 md:flex-row md:items-end md:justify-between">
+        <div className="flex flex-col items-start gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="font-display text-sm uppercase tracking-[0.3em] text-muted-foreground">
               Testimonials
             </p>
-            <h2 className="section-heading mt-2 font-display text-4xl font-bold tracking-tight md:text-5xl">
-              What Clients Say
-            </h2>
+            <RevealText
+              as="h2"
+              className="mt-2 font-display text-4xl font-bold tracking-tight md:text-5xl"
+            >
+              Loved by clients
+            </RevealText>
           </div>
           <div className="flex gap-2">
             <button
@@ -62,57 +76,61 @@ export function Testimonials({ items }: { items: Testimonial[] }) {
 
         <div className="mt-12 overflow-hidden" ref={emblaRef}>
           <div className="-ml-6 flex">
-            {items.map((t) => (
-              <div
-                key={t.id}
-                className="min-w-0 shrink-0 grow-0 basis-full pl-6 md:basis-1/2 lg:basis-1/3"
-              >
-                <Card className="h-full">
-                  <CardContent className="flex h-full flex-col p-6">
-                    <Quote className="h-8 w-8 text-accent-yellow" />
-                    <p className="mt-4 flex-1 text-sm leading-relaxed text-foreground/90">
-                      {t.quote}
-                    </p>
-                    <div className="mt-6 flex items-center gap-3 border-t border-border pt-4">
-                      <div className="relative h-12 w-12 overflow-hidden rounded-full bg-muted">
-                        {t.avatar && typeof t.avatar === "object" && t.avatar.url ? (
+            {items.map((t, i) => {
+              const avatarUrl =
+                (t.avatar && typeof t.avatar === "object" && t.avatar.url) ||
+                fallbackTestimonialAvatars[i % fallbackTestimonialAvatars.length];
+              return (
+                <div
+                  key={t.id}
+                  className="min-w-0 shrink-0 grow-0 basis-full pl-6 md:basis-1/2 lg:basis-1/3"
+                >
+                  <Card className="group relative h-full overflow-hidden transition hover:-translate-y-1 hover:shadow-xl">
+                    <div className="noise-overlay" aria-hidden />
+                    <CardContent className="relative flex h-full flex-col p-6">
+                      <Quote className="h-8 w-8 text-accent-yellow" />
+                      <p className="mt-4 flex-1 text-sm leading-relaxed text-foreground/90">
+                        &ldquo;{t.quote}&rdquo;
+                      </p>
+                      <div className="mt-6 flex items-center gap-3 border-t border-border pt-4">
+                        <div className="relative h-12 w-12 overflow-hidden rounded-full bg-muted ring-2 ring-background">
                           <Image
-                            src={t.avatar.url}
-                            alt={t.avatar.alt || t.name}
+                            src={avatarUrl}
+                            alt={
+                              (t.avatar && typeof t.avatar === "object" && t.avatar.alt) ||
+                              t.name
+                            }
                             fill
                             sizes="48px"
                             className="object-cover"
+                            unoptimized={avatarUrl.startsWith("https://images.unsplash")}
                           />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center font-display text-lg font-bold text-muted-foreground">
-                            {t.name.charAt(0)}
-                          </div>
-                        )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold">{t.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {[t.role, t.company].filter(Boolean).join(", ")}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-0.5">
+                          {[...Array(5)].map((_, idx) => (
+                            <Star
+                              key={idx}
+                              className={cn(
+                                "h-3.5 w-3.5",
+                                idx < (t.rating || 5)
+                                  ? "fill-accent-yellow text-accent-yellow"
+                                  : "text-muted",
+                              )}
+                            />
+                          ))}
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold">{t.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {[t.role, t.company].filter(Boolean).join(", ")}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-0.5">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={cn(
-                              "h-3.5 w-3.5",
-                              i < (t.rating || 5)
-                                ? "fill-accent-yellow text-accent-yellow"
-                                : "text-muted",
-                            )}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            ))}
+                    </CardContent>
+                  </Card>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
